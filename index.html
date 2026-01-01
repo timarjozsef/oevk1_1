@@ -94,97 +94,80 @@
             margin-top: 5px;
         }
         
-        /* --- Kétoszlopos elrendezés --- */
+        /* --- ÚJ STRUKTÚRA: Egyetlen lista kezeli a számot és a dobozt is --- */
         .ranking-wrapper {
-            display: -webkit-box;
-            display: -ms-flexbox;
-            display: flex;
-            align-items: flex-start;
+            /* A flex layout innen törölve, mert nem kell két oszlop */
+            display: block;
             margin-bottom: 20px;
         }
 
-        #number-column {
-            display: -webkit-box;
-            display: -ms-flexbox;
-            display: flex;
-            -webkit-box-orient: vertical;
-            -webkit-box-direction: normal;
-            -ms-flex-direction: column;
-            flex-direction: column;
-            width: 40px; 
-            padding-top: 0; 
-            flex-shrink: 0;
-            margin-right: 10px;
-        }
-
-        .number-item {
-            height: auto; 
-            min-height: 50px;
-            margin-bottom: 8px;
-            display: -webkit-box;
-            display: -ms-flexbox;
-            display: flex;
-            -webkit-box-align: center;
-            -ms-flex-align: center;
-            align-items: center;
-            -webkit-box-pack: center;
-            -ms-flex-pack: center;
-            justify-content: center;
-            color: #ffffff; 
-            font-weight: bold;
-            font-size: 1.4em; 
-            width: 100%;
-            padding-top: 10px; 
-        }
+        /* A különálló szám oszlopot töröltük CSS-ből és HTML-ből is */
 
         #sentence-list {
             list-style: none;
             padding: 0;
             margin: 0;
-            -webkit-box-flex: 1;
-            -ms-flex-positive: 1;
-            flex-grow: 1;
-            min-height: 50px;
-            position: relative;
+            counter-reset: rank-counter; /* CSS számláló indítása */
         }
 
         .sentence-item {
-            background-color: #88E8FF; 
+            /* Ez most a sor konténere (szám + doboz) */
+            display: flex;
+            align-items: center; /* Ez középre igazítja a számot függőlegesen! */
             margin-bottom: 8px;
-            padding: 15px 15px 15px 40px;
-            
-            /* --- MÓDOSÍTÁS: A fix szín helyett transparent, a JS tölti ki --- */
-            border-left: 5px solid transparent; 
-            
             cursor: move;
             cursor: -webkit-grab;
-            border-radius: 4px;
-            font-size: 1.05em;
-            position: relative;
-            min-height: 24px; 
-            display: -webkit-box;
-            display: -ms-flexbox;
-            display: flex;
-            -webkit-box-align: center;
-            -ms-flex-align: center;
-            align-items: center;
             touch-action: none;
         }
 
+        /* A sorszám generálása CSS-sel */
         .sentence-item::before {
+            counter-increment: rank-counter;
+            content: counter(rank-counter) ".";
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 1.4em;
+            width: 40px; /* Fix szélesség a számnak */
+            flex-shrink: 0;
+            text-align: center;
+            margin-right: 5px;
+        }
+
+        /* A tényleges színes doboz stílusa */
+        .sentence-content {
+            background-color: #88E8FF;
+            padding: 15px 15px 15px 40px;
+            border-left: 5px solid transparent; /* JS színezi */
+            border-radius: 4px;
+            font-size: 1.05em;
+            position: relative;
+            min-height: 24px;
+            flex-grow: 1; /* Kitölti a maradék helyet */
+            display: flex;
+            align-items: center;
+        }
+
+        /* A hamburger ikon most a belső dobozhoz tartozik */
+        .sentence-content::before {
             content: '☰';
             position: absolute;
             left: 10px;
             color: #88E8FF;
+            /* Sötétítés a láthatóságért a világos háttéren, vagy az eredeti szín */
+            color: rgba(14, 22, 61, 0.5); 
             font-size: 1.2em;
             font-weight: bold;
         }
 
         .sentence-item.dragging {
             opacity: 0.8;
+            z-index: 100;
+        }
+        
+        /* Dragging közben a belső doboz stílusa változik */
+        .sentence-item.dragging .sentence-content {
             background-color: #A3FFFD;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            z-index: 100;
             transform: scale(1.02);
         }
 
@@ -230,8 +213,6 @@
             border-radius: 4px;
             text-align: center;
             font-weight: bold;
-            background-color: #d4edda;
-            color: #155724;
             display: none;
         }
         
@@ -275,8 +256,7 @@
             .header-row > * { margin: 10px 0; }
             .logo-left { max-height: 60px; }
             .logo-right { max-height: 100px; }
-            #number-column { width: 30px; margin-right: 5px; }
-            .number-item { font-size: 1.2em; padding-top: 15px; }
+            /* number-column stílusok törölve, már nem szükséges */
         }
     </style>
 </head>
@@ -286,7 +266,7 @@
     <div class="header-row">
         <img alt="Logo" src="Logo.png" class="logo-left">
         <div class="header-text">
-            <div class="candidate-label">A Mi jelöltünk 1</div>
+            <div class="candidate-label">A Mi jelöltünk</div>
             <div class="candidate-name">Szeleczky Annamária</div>
         </div>
         <img alt="Candidate" src="Candidate.png" class="logo-right">
@@ -297,16 +277,17 @@
         <input type="file" id="options-file" accept=".txt" style="display: none;">
         <div id="file-error-msg"></div>
     </div>
-
-    <p>Állítsa az alábbi problémákat fontossági sorrendbe (legfelül a legfontosabb). Fogja meg és húzza át az elemeket!</p>
-
+	<div>
+		<p>Állítsa az alábbi problémákat fontossági sorrendbe (legfelül a legfontosabb). Fogja meg és húzza át az elemeket!</p>
+	</div>
+    
     <div class="ranking-wrapper">
-        <div id="number-column">
-            <div class="number-item">1.</div>
-        </div>
-
         <ul id="sentence-list">
-            <li class="sentence-item" style="border-left-color: #3282F6;">Kérlek töltsd be az Options.txt fájlt a fenti gombbal!</li>
+            <li class="sentence-item">
+                 <div class="sentence-content" style="border-left-color: #3282F6;">
+                    Kérlek töltsd be az Options.txt fájlt a fenti gombbal!
+                 </div>
+            </li>
         </ul>
     </div>
 
@@ -318,7 +299,7 @@
     <div id="result-message"></div>
     
     <div id="counter-display">
-        Nyugtázások száma: <span id="counter-value">0</span>
+        Nyugtázások száma: <span id="counter-value">19</span>
     </div>
 </div>
 
@@ -329,7 +310,7 @@
         
         <button class="save-btn" onclick="saveStatisticsToFile()">💾 Statisztika mentése fájlba</button>
 
-        <p>Eddig elvégzett nyugtázások: <span id="modal-counter-value">0</span></p>
+        <p>Eddig elvégzett nyugtázások: <span id="modal-counter-value">19</span></p>
         
         <div id="score-ranking-container"></div>
         <hr>
@@ -342,7 +323,6 @@
 <script>
     // --- Változók inicializálása ---
     var sentenceList = document.getElementById('sentence-list');
-    var numberColumn = document.getElementById('number-column');
     var resultMessage = document.getElementById('result-message');
     var counterValue = document.getElementById('counter-value');
     var statisticsModal = document.getElementById('statistics-modal');
@@ -353,13 +333,13 @@
     var fileErrorMsg = document.getElementById('file-error-msg');
     var uploadContainer = document.getElementById('upload-container'); 
     
-    var confirmationCount = 0;
-    var preferenceStats = [];
+    var confirmationCount = 19;
+    var lastConfirmationTime = 0;
     
-    // Drag & Drop változók
+    var preferenceStats = [];
     var dragSrcEl = null;
     
-    // --- 1. OPCIÓK BETÖLTÉSE (XMLHttpRequest a fetch helyett) ---
+    // --- 1. OPCIÓK BETÖLTÉSE ---
 
     window.onload = function() {
         var xhr = new XMLHttpRequest();
@@ -411,41 +391,40 @@
             return;
         }
 
-        // --- SZÍNEK DEFINIÁLÁSA ITT ---
         var borderColors = [
-            "#3282F6", // 1. Eredeti kék
-            "#E02424", // 2. Piros
-            "#16C60C", // 3. Zöld
-            "#F29F05", // 4. Narancs
-            "#9B59B6"  // 5. Lila
+            "#3282F6", 
+            "#E02424", 
+            "#16C60C", 
+            "#F29F05", 
+            "#9B59B6" 
         ];
 
-        // Lista törlése
+        // Lista törlése és újraépítése
         sentenceList.innerHTML = '';
+        
+        // MÓDOSÍTÁS: Új struktúra generálása (Flexboxos elrendezéshez)
         for(var i=0; i<cleanLines.length; i++) {
+            // A külső konténer (ez lesz a "sor", amiben a szám is van)
             var li = document.createElement('li');
             li.className = 'sentence-item';
-            li.textContent = cleanLines[i].trim();
             
-            // Szín hozzárendelése az elemhez (Inline style)
-            // A ciklus változó (i) alapján választ a tömbből
+            // A belső doboz (ez a színes, szöveges rész)
+            var contentDiv = document.createElement('div');
+            contentDiv.className = 'sentence-content';
+            contentDiv.textContent = cleanLines[i].trim();
+
+            // Szín hozzárendelése a belső dobozhoz
             if(borderColors[i]) {
-                li.style.borderLeftColor = borderColors[i];
+                contentDiv.style.borderLeftColor = borderColors[i];
             } else {
-                li.style.borderLeftColor = "#333"; // Tartalék
+                contentDiv.style.borderLeftColor = "#333";
             }
 
+            li.appendChild(contentDiv);
             sentenceList.appendChild(li);
         }
 
-        // Számok oszlopa
-        numberColumn.innerHTML = '';
-        for(var j = 1; j <= cleanLines.length; j++) {
-            var numDiv = document.createElement('div');
-            numDiv.className = 'number-item';
-            numDiv.textContent = j + ".";
-            numberColumn.appendChild(numDiv);
-        }
+        // A numberColumn generálás TÖRÖLVE, mert CSS Counter oldja meg.
 
         initializeStats(cleanLines.length);
         addDragEvents();
@@ -462,7 +441,7 @@
         }
     }
 
-    // --- 2. UNIVERZÁLIS DRAG & DROP (Egér + Érintés) ---
+    // --- 2. DRAG & DROP ---
     
     function addDragEvents() {
         var items = document.querySelectorAll('.sentence-item');
@@ -482,7 +461,10 @@
     function handleStart(e) {
         if (e.type === 'mousedown' && e.button !== 0) return;
 
-        activeItem = this; 
+        // A teljes sort mozgatjuk (.sentence-item)
+        activeItem = this.closest('.sentence-item');
+        if (!activeItem) return;
+
         activeItem.classList.add('dragging');
         
         if (e.type === 'touchstart') {
@@ -512,6 +494,7 @@
     function checkSwap(x, y) {
         if (!activeItem) return;
 
+        // Elrejtjük, hogy lássuk mi van alatta
         var originalDisplay = activeItem.style.display;
         activeItem.style.display = 'none'; 
         
@@ -555,15 +538,35 @@
     }
 
     function confirmOrder() {
-        if (sentenceList.children.length === 0 || sentenceList.children[0].textContent.indexOf("Options.txt") !== -1) {
+        if (sentenceList.children.length === 0 || sentenceList.textContent.indexOf("Options.txt") !== -1) {
             alert("Előbb töltsd be az opciókat a fájlból!");
             return;
         }
 
-        var currentItems = sentenceList.children;
+        var now = new Date().getTime();
+        var timeDiff = now - lastConfirmationTime;
+        var requiredDelay = 10000; 
+
+        if (timeDiff < requiredDelay) {
+            var remaining = Math.ceil((requiredDelay - timeDiff) / 1000);
+            resultMessage.style.display = 'block';
+            resultMessage.style.backgroundColor = '#f8d7da'; 
+            resultMessage.style.color = '#721c24'; 
+            resultMessage.innerHTML = '⚠️ Kérlek várj még <b>' + remaining + '</b> másodpercet a következő rögzítésig!';
+            setTimeout(function() {
+                resultMessage.style.display = 'none';
+            }, 2000);
+            return; 
+        }
         
+        lastConfirmationTime = now;
+
+        var currentItems = sentenceList.children;
         for(var i=0; i<currentItems.length; i++) {
-            var sentenceText = currentItems[i].textContent.trim();
+            // Módosítás: a szöveg most a .sentence-content div-ben van
+            var contentDiv = currentItems[i].querySelector('.sentence-content');
+            var sentenceText = contentDiv ? contentDiv.textContent.trim() : "";
+            
             if (preferenceStats[i]) {
                 if (preferenceStats[i][sentenceText]) {
                     preferenceStats[i][sentenceText]++;
@@ -577,7 +580,11 @@
         counterValue.textContent = confirmationCount;
 
         resultMessage.style.display = 'block';
-        resultMessage.innerHTML = '✅ **Rögzítve!** A te 1. preferenciád: <b>' + currentItems[0].textContent.trim() + '</b>';
+        resultMessage.style.backgroundColor = '#d4edda';
+        resultMessage.style.color = '#155724';
+        
+        var firstItemText = currentItems[0].querySelector('.sentence-content').textContent.trim();
+        resultMessage.innerHTML = '✅ **Rögzítve!** A te 1. preferenciád: <b>' + firstItemText + '</b>';
         
         setTimeout(function() {
             resultMessage.style.display = 'none';
@@ -588,11 +595,9 @@
 
     function calculateTotalScores() {
         var scores = {};
-        
         for(var i=0; i<preferenceStats.length; i++) {
             var positionStats = preferenceStats[i];
             var pointsForPosition = 5 - i;
-            
             for (var sentence in positionStats) {
                 if (positionStats.hasOwnProperty(sentence)) {
                     var count = positionStats[sentence];
@@ -601,21 +606,18 @@
                 }
             }
         }
-
         var sortedScores = [];
         for (var text in scores) {
             if (scores.hasOwnProperty(text)) {
                 sortedScores.push({ text: text, score: scores[text] });
             }
         }
-        
         sortedScores.sort(function(a, b) { return b.score - a.score; });
         return sortedScores;
     }
 
     function showStatistics() {
         modalCounterValue.textContent = confirmationCount;
-        
         var sortedScores = calculateTotalScores();
         scoreRankingContainer.innerHTML = '<h3>🏆 Pontszám alapú rangsor (Súlyozott)</h3><p style="font-size:0.9em; color:#666;">(1. hely = 5p, ... 5. hely = 1p)</p>';
         
@@ -637,7 +639,6 @@
         for(var i=0; i<preferenceStats.length; i++) {
             var positionStats = preferenceStats[i];
             var positionNumber = i + 1;
-            
             var positionHeader = document.createElement('h3');
             positionHeader.textContent = positionNumber + '. helyen szerepelt:';
             statsList.appendChild(positionHeader);
@@ -671,7 +672,6 @@
             }
             statsList.appendChild(itemUl);
         }
-
         statisticsModal.style.display = 'block';
     }
 
@@ -683,7 +683,6 @@
         content += "---------------------------------\r\n\r\n";
 
         content += "🏆 PONTSZAM ALAPU RANGSOR (Sulyozott)\r\n";
-        content += "(Szamitas: 1. hely=5p, 2. hely=4p, 3. hely=3p, 4. hely=2p, 5. hely=1p)\r\n\r\n";
         
         var sortedScores = calculateTotalScores();
         if (sortedScores.length === 0) {
