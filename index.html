@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sorrend</title>
+    <style>
+        /* --- Alapvető Stílusok --- */
+        body {
+            font-family: 'Times New Roman', Georgia, serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f4f7;
+            color: #333333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            background-color: #0E163D;
+            padding: 40px;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            background-size: cover; 
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+        
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 15px; 
+        }
+
+        .logo-left { max-height: 90px; width: auto; }
+        .logo-right { max-height: 160px; width: auto; }
+
+        .header-text { text-align: center; flex-grow: 1; }
+
+        .candidate-label {
+            font-size: 1.6rem;
+            color: #ffffff;
+            margin-bottom: 5px;
+            font-family: Georgia, serif;
+        }
+
+        .candidate-name {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            line-height: 1.2;
+        }
+
+        p { line-height: 1.6; margin-bottom: 15px; color: #ffffff;}
+        
+        /* --- Fájl feltöltés szekció --- */
+        .file-upload-section {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border: 1px dashed #6c757d;
+            text-align: center;
+            transition: opacity 0.5s ease;
+        }
+        .file-upload-section label {
+            font-weight: bold;
+            color: #495057;
+            cursor: pointer;
+        }
+        #file-error-msg {
+            color: #dc3545;
+            font-size: 0.9em;
+            display: none;
+            margin-top: 5px;
+        }
+        
+        /* --- Kétoszlopos elrendezés --- */
+        .ranking-wrapper {
+            display: flex;
+            gap: 10px; 
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        /* --- Bal oszlop: Fix számok (KERET NÉLKÜL) --- */
+        #number-column {
+            display: flex;
+            flex-direction: column;
+            width: 40px; 
+            padding-top: 0; 
+            flex-shrink: 0;
+        }
+
+        .number-item {
+            /* Magasság igazítása a dobozokhoz */
+            height: auto; 
+            min-height: 54px; 
+            margin-bottom: 6px;
+            
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            
+            /* --- MÓDOSÍTÁS: Keret és háttér eltávolítva --- */
+            background-color: transparent; /* Nincs háttérszín */
+            box-shadow: none; /* Nincs árnyék/keret */
+            color: #ffffff; /* Fehér szöveg a sötét háttéren */
+            
+            font-weight: bold;
+            font-size: 1.4em; /* Kicsit nagyobb betűméret */
+            width: 100%;
+            
+            /* Finomhangolás, hogy vizuálisan a doboz közepén legyen */
+            /*margin-top: 7px; */
+        }
+
+        /* --- Jobb oszlop: Mozgatható lista --- */
+        #sentence-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex-grow: 1;
+            min-height: 50px;
+        }
+
+        .sentence-item {
+            background-color: #88E8FF; 
+            margin-bottom: 6px;
+            padding: 15px 20px;
+            border-left: 5px solid #3282F6; 
+            cursor: grab;
+            transition: background-color 0.2s, transform 0.2s;
+            border-radius: 4px;
+            font-size: 1.05em;
+            position: relative;
+            
+            min-height: 24px; 
+            display: flex;
+            align-items: center;
+        }
+
+        .sentence-item:hover { background-color: #A3FFFD; }
+        .dragging { opacity: 0.5; }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        .button-group button {
+            flex-grow: 1;
+            padding: 12px 20px;
+            border: 2px solid #ffffff;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+        
+        .confirm-btn { background-color: #24B574; color: white; }
+        .confirm-btn:hover { background-color: #2BE060; transform: translateY(-1px); }
+        
+        .stats-btn { background-color: #0E163D; color: white; }
+        .stats-btn:hover { background-color: #272E51; transform: translateY(-1px); border: 2px solid #ffffff;}
+
+        .save-btn {
+            background-color: #0056b3;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-bottom: 15px;
+            width: 100%;
+            font-size: 1em;
+        }
+        .save-btn:hover { background-color: #004494; }
+
+        #result-message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: bold;
+            background-color: #d4edda;
+            color: #155724;
+            display: none;
+        }
+        
+        #counter-display {
+            margin-top: 20px;
+            padding: 10px;
+            text-align: center;
+			color: #ffffff;
+            border: 1px solid #0E163D;
+            border-radius: 4px;
+            font-size: 1.1em;
+            background-color: #0E163D;
+        }
+        
+        #counter-value { font-weight: bold; color: #ffffff; font-size: 1.5em; }
+
+        /* --- Modális ablak --- */
+        #statistics-modal {
+            position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.6); display: none;
+        }
+        .modal-content {
+            background-color: #ffffff; margin: 3% auto; padding: 30px;
+            border-radius: 8px; width: 90%; max-width: 600px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); max-height: 85vh; overflow-y: auto;
+        }
+        .close-btn { color: #aaa; float: right; font-size: 30px; font-weight: bold; cursor: pointer; }
+        .close-btn:hover { color: #000; }
+        
+        .stats-list { list-style: none; padding-left: 0; }
+        .stats-list h3 { color: #0056b3; margin-top: 15px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .stats-item { background-color: #f4f7fa; padding: 8px; margin-bottom: 4px; border-radius: 3px; }
+        
+        .score-item {
+            background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404;
+            padding: 10px; margin-bottom: 5px; border-radius: 4px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .score-badge {
+            font-weight: bold; font-size: 1.1em; background-color: #856404; color: white;
+            padding: 2px 8px; border-radius: 10px;
+        }
+
+        @media (max-width: 650px) {
+            .container { margin: 20px auto; padding: 20px; }
+            .button-group { flex-direction: column; gap: 10px; }
+            .header-row { flex-direction: column; text-align: center; }
+            .logo-left { max-height: 70px; }
+            .logo-right { max-height: 120px; }
+            
+            .ranking-wrapper { gap: 5px; }
+            #number-column { width: 30px; }
+            .number-item { font-size: 1.2em; margin-top: 12px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-row">
+        <img alt="Logo" src="Logo.png" class="logo-left">
+        <div class="header-text">
+            <div class="candidate-label">A Mi jelöltünk</div>
+            <div class="candidate-name">Szeleczky Annamária</div>
+        </div>
+        <img alt="Candidate" src="Candidate.png" class="logo-right">
+    </div>
+
+    <div id="upload-container" class="file-upload-section">
+        <label for="options-file">📂 Ha nem töltődött be magától, kattints ide az <b>Options.txt</b> betöltéséhez!</label>
+        <input type="file" id="options-file" accept=".txt" style="display: none;">
+        <div id="file-error-msg"></div>
+    </div>
+
+    <p>Állítsa az alábbi problémákat fontossági sorrendbe (legfelül a legfontosabb). Húzza át az elemeket, majd kérem nyugtázza!</p>
+
+    <div class="ranking-wrapper">
+        <div id="number-column">
+            <div class="number-item">1.</div>
+        </div>
+
+        <ul id="sentence-list">
+            <li class="sentence-item" draggable="true">Kérlek töltsd be az Options.txt fájlt a fenti gombbal!</li>
+        </ul>
+    </div>
+
+    <div class="button-group">
+        <button class="confirm-btn" onclick="confirmOrder()">Sorrend nyugtázása</button>
+        <button class="stats-btn" onclick="showStatistics()">Statisztika megtekintése</button>
+    </div>
+
+    <div id="result-message"></div>
+    
+    <div id="counter-display">
+        Nyugtázások száma: <span id="counter-value">0</span>
+    </div>
+</div>
+
+<div id="statistics-modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <h2>📊 Összesített statisztika</h2>
+        
+        <button class="save-btn" onclick="saveStatisticsToFile()">💾 Statisztika mentése fájlba</button>
+
+        <p>Eddig elvégzett nyugtázások: <span id="modal-counter-value">0</span></p>
+        
+        <div id="score-ranking-container"></div>
+        <hr>
+        <div id="statistics-results">
+            <ul class="stats-list"></ul>
+        </div>
+    </div>
+</div>
+
+<script>
+    const sentenceList = document.getElementById('sentence-list');
+    const numberColumn = document.getElementById('number-column');
+    const resultMessage = document.getElementById('result-message');
+    const counterValue = document.getElementById('counter-value');
+    const statisticsModal = document.getElementById('statistics-modal');
+    const modalCounterValue = document.getElementById('modal-counter-value');
+    const statisticsResults = document.getElementById('statistics-results');
+    const scoreRankingContainer = document.getElementById('score-ranking-container');
+    const fileInput = document.getElementById('options-file');
+    const fileErrorMsg = document.getElementById('file-error-msg');
+    const uploadContainer = document.getElementById('upload-container'); 
+    
+    let confirmationCount = 0;
+    let draggedItem = null;
+    let preferenceStats = [];
+    
+    // --- 1. OPCIÓK BETÖLTÉSE LOGIKA ---
+
+    window.onload = function() {
+        fetch('Options.txt')
+            .then(response => {
+                if (!response.ok) throw new Error("Network response was not ok");
+                return response.text();
+            })
+            .then(text => {
+                fileErrorMsg.style.display = 'none';
+                processOptions(text);
+            })
+            .catch(error => {
+                console.log("Automata betöltés sikertelen (ez normális helyi fájloknál):", error);
+                fileErrorMsg.textContent = "Biztonsági okokból automatikusan nem olvasható a fájl. Kérlek kattints a fenti szövegre és válaszd ki az Options.txt-t!";
+                fileErrorMsg.style.display = 'block';
+            });
+    };
+
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            processOptions(e.target.result);
+            fileErrorMsg.style.display = 'none'; 
+        };
+        reader.readAsText(file, "UTF-8"); 
+    });
+
+    function processOptions(text) {
+        const lines = text.split(/\r?\n/).filter(line => line.trim() !== '').slice(0, 5);
+
+        if (lines.length === 0) {
+            alert("A fájl üres vagy nem olvasható!");
+            return;
+        }
+
+        // 1. Lista törlése és újraépítése
+        sentenceList.innerHTML = '';
+        lines.forEach(line => {
+            const li = document.createElement('li');
+            li.className = 'sentence-item';
+            li.setAttribute('draggable', 'true');
+            li.textContent = line.trim();
+            sentenceList.appendChild(li);
+        });
+
+        // 2. Számok oszlopának újraépítése
+        numberColumn.innerHTML = '';
+        for(let i = 1; i <= lines.length; i++) {
+            const numDiv = document.createElement('div');
+            numDiv.className = 'number-item';
+            numDiv.textContent = i + ".";
+            numberColumn.appendChild(numDiv);
+        }
+
+        reattachDragEvents();
+        initializeStats();
+
+        if (uploadContainer) {
+            uploadContainer.style.display = 'none';
+        }
+    }
+
+    function initializeStats() {
+        preferenceStats = [];
+        const itemCount = sentenceList.children.length;
+        for (let i = 0; i < itemCount; i++) {
+            preferenceStats.push({});
+        }
+    }
+
+    // --- Drag and Drop ---
+    function reattachDragEvents() {
+        document.querySelectorAll('.sentence-item').forEach(item => {
+            item.removeEventListener('dragstart', handleDragStart);
+            item.removeEventListener('dragover', handleDragOver);
+            item.removeEventListener('dragleave', handleDragLeave);
+            item.removeEventListener('drop', handleDrop);
+            item.removeEventListener('dragend', handleDragEnd);
+
+            item.addEventListener('dragstart', handleDragStart);
+            item.addEventListener('dragover', handleDragOver);
+            item.addEventListener('dragleave', handleDragLeave);
+            item.addEventListener('drop', handleDrop);
+            item.addEventListener('dragend', handleDragEnd);
+        });
+    }
+    
+    function handleDragStart(e) { 
+        draggedItem = this; 
+        e.dataTransfer.effectAllowed = 'move'; 
+        e.dataTransfer.setData('text/html', this.innerHTML); 
+        setTimeout(() => this.classList.add('dragging'), 0); 
+    }
+    
+    function handleDragOver(e) { 
+        e.preventDefault(); 
+        const target = e.target.closest('.sentence-item'); 
+        if (target && target !== draggedItem) { 
+            const rect = target.getBoundingClientRect(); 
+            const midpoint = rect.y + rect.height / 2; 
+            if (e.clientY < midpoint) { 
+                target.style.borderTop = '2px solid #007bff'; 
+                target.style.borderBottom = 'none'; 
+            } else { 
+                target.style.borderBottom = '2px solid #007bff'; 
+                target.style.borderTop = 'none'; 
+            } 
+        } 
+    }
+    
+    function handleDragLeave(e) { 
+        const target = e.target.closest('.sentence-item'); 
+        if (target) { 
+            target.style.borderTop = 'none'; 
+            target.style.borderBottom = 'none'; 
+        } 
+    }
+    
+    function handleDrop(e) { 
+        e.preventDefault(); 
+        const target = e.target.closest('.sentence-item'); 
+        if (target && target !== draggedItem) { 
+            target.style.borderTop = 'none'; 
+            target.style.borderBottom = 'none'; 
+            const rect = target.getBoundingClientRect(); 
+            const midpoint = rect.y + rect.height / 2; 
+            if (e.clientY < midpoint) { 
+                sentenceList.insertBefore(draggedItem, target); 
+            } else { 
+                sentenceList.insertBefore(draggedItem, target.nextSibling); 
+            } 
+        } 
+    }
+    
+    function handleDragEnd(e) { 
+        document.querySelectorAll('.sentence-item').forEach(item => { 
+            item.classList.remove('dragging'); 
+            item.style.borderTop = 'none'; 
+            item.style.borderBottom = 'none'; 
+        }); 
+        draggedItem = null; 
+    }
+
+    function shuffleSentences() {
+        const items = Array.from(sentenceList.children);
+        for (let i = items.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            if (i !== j) {
+                 const current = items[i];
+                 const target = items[j];
+                 sentenceList.insertBefore(current, target.nextSibling);
+                 sentenceList.insertBefore(target, current.nextSibling);
+                 [items[i], items[j]] = [items[j], items[i]];
+            }
+        }
+    }
+
+    function confirmOrder() {
+        if (sentenceList.children.length === 0 || sentenceList.children[0].textContent.includes("Options.txt")) {
+            alert("Előbb töltsd be az opciókat a fájlból!");
+            return;
+        }
+
+        const currentItems = Array.from(sentenceList.children);
+        
+        currentItems.forEach((item, index) => {
+            const sentenceText = item.textContent.trim();
+            const position = index; 
+            
+            if (preferenceStats[position] && preferenceStats[position][sentenceText]) {
+                preferenceStats[position][sentenceText]++;
+            } else if (preferenceStats[position]) {
+                preferenceStats[position][sentenceText] = 1;
+            }
+        });
+
+        confirmationCount++;
+        counterValue.textContent = confirmationCount;
+
+        resultMessage.style.display = 'block';
+        resultMessage.innerHTML = `✅ **Rögzítve!** A te 1. preferenciád: **${currentItems[0].textContent.trim()}**`;
+        
+        setTimeout(() => {
+            resultMessage.style.display = 'none';
+        }, 3000);
+        
+        shuffleSentences();
+    }
+
+    function calculateTotalScores() {
+        let scores = {};
+        
+        preferenceStats.forEach((positionStats, index) => {
+            const pointsForPosition = 5 - index;
+            for (const [sentence, count] of Object.entries(positionStats)) {
+                if (!scores[sentence]) scores[sentence] = 0;
+                scores[sentence] += (count * pointsForPosition);
+            }
+        });
+
+        let sortedScores = Object.entries(scores).map(([text, score]) => {
+            return { text: text, score: score };
+        });
+        
+        sortedScores.sort((a, b) => b.score - a.score);
+        return sortedScores;
+    }
+
+    function showStatistics() {
+        modalCounterValue.textContent = confirmationCount;
+        
+        const sortedScores = calculateTotalScores();
+        scoreRankingContainer.innerHTML = '<h3>🏆 Pontszám alapú rangsor (Súlyozott)</h3><p style="font-size:0.9em; color:#666;">(1. hely = 5p, 2. hely = 4p, ... 5. hely = 1p)</p>';
+        
+        if (sortedScores.length === 0) {
+            scoreRankingContainer.innerHTML += '<p>Még nincs adat.</p>';
+        } else {
+            sortedScores.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'score-item';
+                div.innerHTML = `<span>${item.text}</span> <span class="score-badge">${item.score} pont</span>`;
+                scoreRankingContainer.appendChild(div);
+            });
+        }
+
+        const statsList = statisticsResults.querySelector('.stats-list');
+        statsList.innerHTML = ''; 
+
+        preferenceStats.forEach((positionStats, index) => {
+            const positionNumber = index + 1;
+            const positionHeader = document.createElement('h3');
+            positionHeader.textContent = `${positionNumber}. helyen szerepelt:`;
+            statsList.appendChild(positionHeader);
+            
+            const sortedEntries = Object.entries(positionStats).sort((a, b) => b[1] - a[1]);
+            
+            const itemUl = document.createElement('ul');
+            itemUl.style.listStyle = 'none';
+            itemUl.style.paddingLeft = '0';
+
+            if (sortedEntries.length > 0) {
+                 sortedEntries.forEach(([sentence, count]) => {
+                    const listItem = document.createElement('li');
+                    listItem.className = 'stats-item';
+                    listItem.innerHTML = `${sentence} – <strong>${count}</strong> alkalommal`;
+                    itemUl.appendChild(listItem);
+                });
+            } else {
+                 const listItem = document.createElement('li');
+                 listItem.textContent = 'Még nem történt nyugtázás ezen a pozíción.';
+                 itemUl.appendChild(listItem);
+            }
+            statsList.appendChild(itemUl);
+        });
+
+        statisticsModal.style.display = 'block';
+    }
+
+    function saveStatisticsToFile() {
+        let content = "STATISZTIKA EXPORT\n";
+        content += "---------------------------------\n";
+        content += "Dátum: " + new Date().toLocaleString('hu-HU') + "\n";
+        content += "Összes kitöltés száma: " + confirmationCount + "\n";
+        content += "---------------------------------\n\n";
+
+        content += "🏆 PONTSZÁM ALAPÚ RANGSOR (Súlyozott)\n";
+        content += "(Számítás: 1. hely=5p, 2. hely=4p, 3. hely=3p, 4. hely=2p, 5. hely=1p)\n\n";
+        
+        const sortedScores = calculateTotalScores();
+        if (sortedScores.length === 0) {
+            content += "    (Nincs adat)\n";
+        } else {
+            sortedScores.forEach(item => {
+                content += `    [${item.score} pont] - ${item.text}\n`;
+            });
+        }
+        content += "\n---------------------------------\n\n";
+
+        preferenceStats.forEach((positionStats, index) => {
+            content += `>>> ${index + 1}. HELYEZÉSEK:\n`;
+            const sortedEntries = Object.entries(positionStats).sort((a, b) => b[1] - a[1]);
+            if (sortedEntries.length === 0) {
+                content += "    (Nincs adat)\n";
+            } else {
+                sortedEntries.forEach(([sentence, count]) => {
+                    content += `    [${count} db] - ${sentence}\n`;
+                });
+            }
+            content += "\n";
+        });
+
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hour = String(now.getHours()).padStart(2, '0');
+        const minute = String(now.getMinutes()).padStart(2, '0');
+        const filename = `statisztika_${year}${month}${day}_${hour}${minute}.txt`;
+
+        const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+    }
+
+    function closeModal() { statisticsModal.style.display = 'none'; }
+    window.onclick = function(event) { if (event.target == statisticsModal) closeModal(); }
+    window.onkeydown = function(event) { if (event.key === 'Escape') closeModal(); }
+</script>
+
+</body>
+</html>
