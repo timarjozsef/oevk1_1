@@ -2,7 +2,7 @@
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Sorrend</title>
     <style>
         /* --- Alapvető Stílusok --- */
@@ -12,43 +12,57 @@
             padding: 0;
             background-color: #f0f4f7;
             color: #333333;
+            /* Mobilon megakadályozza a véletlen kijelölést */
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
 
         .container {
             max-width: 800px;
-            margin: 40px auto;
+            margin: 20px auto;
             background-color: #0E163D;
-            padding: 40px;
+            padding: 20px;
             border-radius: 4px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            background-size: cover; 
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
         }
         
         .header-row {
+            display: -webkit-box;      /* Régi iOS */
+            display: -ms-flexbox;      /* Régi IE */
             display: flex;
+            -webkit-box-pack: justify;
+            -ms-flex-pack: justify;
             justify-content: space-between;
+            -webkit-box-align: center;
+            -ms-flex-align: center;
             align-items: center;
             margin-bottom: 20px;
-            gap: 15px; 
         }
 
-        .logo-left { max-height: 90px; width: auto; }
-        .logo-right { max-height: 160px; width: auto; }
+        /* Gap helyett margin hack a kompatibilitásért */
+        .header-row > * { margin: 0 5px; }
 
-        .header-text { text-align: center; flex-grow: 1; }
+        .logo-left { max-height: 80px; width: auto; }
+        .logo-right { max-height: 140px; width: auto; }
+
+        .header-text { 
+            text-align: center; 
+            -webkit-box-flex: 1; 
+            -ms-flex-positive: 1; 
+            flex-grow: 1; 
+        }
 
         .candidate-label {
-            font-size: 1.6rem;
+            font-size: 1.4rem;
             color: #ffffff;
             margin-bottom: 5px;
             font-family: Georgia, serif;
         }
 
         .candidate-name {
-            font-size: 2.2rem;
+            font-size: 1.8rem;
             font-weight: bold;
             color: #ffffff;
             text-transform: uppercase;
@@ -56,22 +70,25 @@
             line-height: 1.2;
         }
 
-        p { line-height: 1.6; margin-bottom: 15px; color: #ffffff;}
+        p { line-height: 1.5; margin-bottom: 15px; color: #ffffff;}
         
         /* --- Fájl feltöltés szekció --- */
         .file-upload-section {
             background-color: #e9ecef;
-            padding: 10px;
+            padding: 15px;
             border-radius: 4px;
             margin-bottom: 20px;
             border: 1px dashed #6c757d;
             text-align: center;
-            transition: opacity 0.5s ease;
         }
         .file-upload-section label {
             font-weight: bold;
             color: #495057;
             cursor: pointer;
+            display: block;
+            padding: 10px;
+            /* Nagyobb érintési felület */
+            font-size: 1.1em;
         }
         #file-error-msg {
             color: #dc3545;
@@ -82,98 +99,125 @@
         
         /* --- Kétoszlopos elrendezés --- */
         .ranking-wrapper {
+            display: -webkit-box;
+            display: -ms-flexbox;
             display: flex;
-            gap: 10px; 
+            /* Gap helyett margin a gyerekeken */
             align-items: flex-start;
             margin-bottom: 20px;
         }
 
-        /* --- Bal oszlop: Fix számok (KERET NÉLKÜL) --- */
         #number-column {
+            display: -webkit-box;
+            display: -ms-flexbox;
             display: flex;
+            -webkit-box-orient: vertical;
+            -webkit-box-direction: normal;
+            -ms-flex-direction: column;
             flex-direction: column;
             width: 40px; 
             padding-top: 0; 
             flex-shrink: 0;
+            margin-right: 10px; /* Gap pótlása */
         }
 
         .number-item {
-            /* Magasság igazítása a dobozokhoz */
             height: auto; 
-            min-height: 54px; 
-            margin-bottom: 6px;
-            
+            min-height: 50px; /* Kicsit kisebb, hogy biztosan elférjen */
+            margin-bottom: 8px; /* Hozzátartozó sentence-item marginjához igazítva */
+            display: -webkit-box;
+            display: -ms-flexbox;
             display: flex;
+            -webkit-box-align: center;
+            -ms-flex-align: center;
             align-items: center;
+            -webkit-box-pack: center;
+            -ms-flex-pack: center;
             justify-content: center;
-            
-            /* --- MÓDOSÍTÁS: Keret és háttér eltávolítva --- */
-            background-color: transparent; /* Nincs háttérszín */
-            box-shadow: none; /* Nincs árnyék/keret */
-            color: #ffffff; /* Fehér szöveg a sötét háttéren */
-            
+            color: #ffffff; 
             font-weight: bold;
-            font-size: 1.4em; /* Kicsit nagyobb betűméret */
+            font-size: 1.4em; 
             width: 100%;
-            
-            /* Finomhangolás, hogy vizuálisan a doboz közepén legyen */
-            /*margin-top: 7px; */
+            /* Igazítás a dobozok közepéhez vizuálisan */
+            padding-top: 10px; 
         }
 
-        /* --- Jobb oszlop: Mozgatható lista --- */
         #sentence-list {
             list-style: none;
             padding: 0;
             margin: 0;
+            -webkit-box-flex: 1;
+            -ms-flex-positive: 1;
             flex-grow: 1;
             min-height: 50px;
+            position: relative; /* Fontos a pozicionáláshoz */
         }
 
         .sentence-item {
             background-color: #88E8FF; 
-            margin-bottom: 6px;
-            padding: 15px 20px;
+            margin-bottom: 8px; /* Elemközök */
+            padding: 15px 15px 15px 40px; /* Bal padding a "fogantyú" helyének */
             border-left: 5px solid #3282F6; 
-            cursor: grab;
-            transition: background-color 0.2s, transform 0.2s;
+            cursor: move; /* Kurzor jelzi a mozgathatóságot */
+            cursor: -webkit-grab;
             border-radius: 4px;
             font-size: 1.05em;
             position: relative;
-            
             min-height: 24px; 
+            display: -webkit-box;
+            display: -ms-flexbox;
             display: flex;
+            -webkit-box-align: center;
+            -ms-flex-align: center;
             align-items: center;
+            touch-action: none; /* Fontos: letiltja a görgetést az elemen */
         }
 
-        .sentence-item:hover { background-color: #A3FFFD; }
-        .dragging { opacity: 0.5; }
+        /* Ikon a mozgatáshoz (vizuális segítség) */
+        .sentence-item::before {
+            content: '☰';
+            position: absolute;
+            left: 10px;
+            color: #0056b3;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .sentence-item.dragging {
+            opacity: 0.8;
+            background-color: #A3FFFD;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 100;
+            transform: scale(1.02);
+        }
 
         .button-group {
+            display: -webkit-box;
+            display: -ms-flexbox;
             display: flex;
-            gap: 15px;
             margin-top: 25px;
         }
+        
         .button-group button {
+            -webkit-box-flex: 1;
+            -ms-flex-positive: 1;
             flex-grow: 1;
-            padding: 12px 20px;
+            padding: 15px 10px; /* Nagyobb gombok érintéshez */
             border: 2px solid #ffffff;
             border-radius: 4px;
             cursor: pointer;
             font-size: 1.1em;
             font-weight: bold;
-            transition: background-color 0.3s, transform 0.1s;
+            margin: 0 5px; /* Gap pótlása */
         }
         
         .confirm-btn { background-color: #24B574; color: white; }
-        .confirm-btn:hover { background-color: #2BE060; transform: translateY(-1px); }
-        
         .stats-btn { background-color: #0E163D; color: white; }
-        .stats-btn:hover { background-color: #272E51; transform: translateY(-1px); border: 2px solid #ffffff;}
 
         .save-btn {
             background-color: #0056b3;
             color: white;
-            padding: 10px 15px;
+            padding: 12px 15px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
@@ -182,7 +226,6 @@
             width: 100%;
             font-size: 1em;
         }
-        .save-btn:hover { background-color: #004494; }
 
         #result-message {
             margin-top: 20px;
@@ -214,37 +257,29 @@
             background-color: rgba(0,0,0,0.6); display: none;
         }
         .modal-content {
-            background-color: #ffffff; margin: 3% auto; padding: 30px;
+            background-color: #ffffff; margin: 5% auto; padding: 20px;
             border-radius: 8px; width: 90%; max-width: 600px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); max-height: 85vh; overflow-y: auto;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); max-height: 80vh; overflow-y: auto;
         }
-        .close-btn { color: #aaa; float: right; font-size: 30px; font-weight: bold; cursor: pointer; }
-        .close-btn:hover { color: #000; }
-        
-        .stats-list { list-style: none; padding-left: 0; }
-        .stats-list h3 { color: #0056b3; margin-top: 15px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-        .stats-item { background-color: #f4f7fa; padding: 8px; margin-bottom: 4px; border-radius: 3px; }
+        .close-btn { color: #aaa; float: right; font-size: 30px; font-weight: bold; cursor: pointer; padding: 0 10px; }
         
         .score-item {
             background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404;
             padding: 10px; margin-bottom: 5px; border-radius: 4px;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .score-badge {
-            font-weight: bold; font-size: 1.1em; background-color: #856404; color: white;
-            padding: 2px 8px; border-radius: 10px;
+            display: -webkit-box; display: -ms-flexbox; display: flex;
+            -webkit-box-pack: justify; -ms-flex-pack: justify; justify-content: space-between;
         }
 
         @media (max-width: 650px) {
-            .container { margin: 20px auto; padding: 20px; }
-            .button-group { flex-direction: column; gap: 10px; }
-            .header-row { flex-direction: column; text-align: center; }
-            .logo-left { max-height: 70px; }
-            .logo-right { max-height: 120px; }
-            
-            .ranking-wrapper { gap: 5px; }
-            #number-column { width: 30px; }
-            .number-item { font-size: 1.2em; margin-top: 12px; }
+            .container { margin: 10px auto; padding: 15px; }
+            .button-group { display: block; }
+            .button-group button { width: 100%; margin: 5px 0; }
+            .header-row { display: block; text-align: center; }
+            .header-row > * { margin: 10px 0; }
+            .logo-left { max-height: 60px; }
+            .logo-right { max-height: 100px; }
+            #number-column { width: 30px; margin-right: 5px; }
+            .number-item { font-size: 1.2em; padding-top: 15px; }
         }
     </style>
 </head>
@@ -266,7 +301,7 @@
         <div id="file-error-msg"></div>
     </div>
 
-    <p>Állítsa az alábbi problémákat fontossági sorrendbe (legfelül a legfontosabb). Húzza át az elemeket, majd kérem nyugtázza!</p>
+    <p>Állítsa az alábbi problémákat fontossági sorrendbe (legfelül a legfontosabb). Fogja meg és húzza át az elemeket!</p>
 
     <div class="ranking-wrapper">
         <div id="number-column">
@@ -274,7 +309,7 @@
         </div>
 
         <ul id="sentence-list">
-            <li class="sentence-item" draggable="true">Kérlek töltsd be az Options.txt fájlt a fenti gombbal!</li>
+            <li class="sentence-item">Kérlek töltsd be az Options.txt fájlt a fenti gombbal!</li>
         </ul>
     </div>
 
@@ -302,52 +337,63 @@
         <div id="score-ranking-container"></div>
         <hr>
         <div id="statistics-results">
-            <ul class="stats-list"></ul>
+            <ul class="stats-list" style="list-style: none; padding: 0;"></ul>
         </div>
     </div>
 </div>
 
 <script>
-    const sentenceList = document.getElementById('sentence-list');
-    const numberColumn = document.getElementById('number-column');
-    const resultMessage = document.getElementById('result-message');
-    const counterValue = document.getElementById('counter-value');
-    const statisticsModal = document.getElementById('statistics-modal');
-    const modalCounterValue = document.getElementById('modal-counter-value');
-    const statisticsResults = document.getElementById('statistics-results');
-    const scoreRankingContainer = document.getElementById('score-ranking-container');
-    const fileInput = document.getElementById('options-file');
-    const fileErrorMsg = document.getElementById('file-error-msg');
-    const uploadContainer = document.getElementById('upload-container'); 
+    // --- Változók inicializálása (var használata a régi böngészők miatt) ---
+    var sentenceList = document.getElementById('sentence-list');
+    var numberColumn = document.getElementById('number-column');
+    var resultMessage = document.getElementById('result-message');
+    var counterValue = document.getElementById('counter-value');
+    var statisticsModal = document.getElementById('statistics-modal');
+    var modalCounterValue = document.getElementById('modal-counter-value');
+    var statisticsResults = document.getElementById('statistics-results');
+    var scoreRankingContainer = document.getElementById('score-ranking-container');
+    var fileInput = document.getElementById('options-file');
+    var fileErrorMsg = document.getElementById('file-error-msg');
+    var uploadContainer = document.getElementById('upload-container'); 
     
-    let confirmationCount = 0;
-    let draggedItem = null;
-    let preferenceStats = [];
+    var confirmationCount = 0;
+    var preferenceStats = [];
     
-    // --- 1. OPCIÓK BETÖLTÉSE LOGIKA ---
+    // Drag & Drop változók
+    var dragSrcEl = null;
+    
+    // --- 1. OPCIÓK BETÖLTÉSE (XMLHttpRequest a fetch helyett) ---
 
     window.onload = function() {
-        fetch('Options.txt')
-            .then(response => {
-                if (!response.ok) throw new Error("Network response was not ok");
-                return response.text();
-            })
-            .then(text => {
-                fileErrorMsg.style.display = 'none';
-                processOptions(text);
-            })
-            .catch(error => {
-                console.log("Automata betöltés sikertelen (ez normális helyi fájloknál):", error);
-                fileErrorMsg.textContent = "Biztonsági okokból automatikusan nem olvasható a fájl. Kérlek kattints a fenti szövegre és válaszd ki az Options.txt-t!";
-                fileErrorMsg.style.display = 'block';
-            });
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', 'Options.txt', true);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200 || xhr.status === 0) { // status 0 a helyi fájlokhoz
+                    var text = xhr.responseText;
+                    if (text && text.length > 0) {
+                        fileErrorMsg.style.display = 'none';
+                        processOptions(text);
+                    }
+                } else {
+                    console.log("Automata betöltés hiba.");
+                    fileErrorMsg.textContent = "Kattints a fenti gombra az Options.txt betöltéséhez!";
+                    fileErrorMsg.style.display = 'block';
+                }
+            }
+        };
+        try { xhr.send(); } catch(e) { 
+            console.log(e); 
+            fileErrorMsg.textContent = "Kattints a fenti gombra az Options.txt betöltéséhez!";
+            fileErrorMsg.style.display = 'block';
+        }
     };
 
     fileInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
+        var file = e.target.files[0];
         if (!file) return;
 
-        const reader = new FileReader();
+        var reader = new FileReader();
         reader.onload = function(e) {
             processOptions(e.target.result);
             fileErrorMsg.style.display = 'none'; 
@@ -356,161 +402,199 @@
     });
 
     function processOptions(text) {
-        const lines = text.split(/\r?\n/).filter(line => line.trim() !== '').slice(0, 5);
+        // Sortörések kezelése (IE kompatibilis split)
+        var lines = text.replace(/\r\n/g, "\n").split("\n");
+        var cleanLines = [];
+        for(var k=0; k<lines.length; k++) {
+            if(lines[k].trim() !== "") cleanLines.push(lines[k]);
+        }
+        cleanLines = cleanLines.slice(0, 5); // Csak az első 5
 
-        if (lines.length === 0) {
+        if (cleanLines.length === 0) {
             alert("A fájl üres vagy nem olvasható!");
             return;
         }
 
-        // 1. Lista törlése és újraépítése
+        // Lista törlése
         sentenceList.innerHTML = '';
-        lines.forEach(line => {
-            const li = document.createElement('li');
+        for(var i=0; i<cleanLines.length; i++) {
+            var li = document.createElement('li');
             li.className = 'sentence-item';
-            li.setAttribute('draggable', 'true');
-            li.textContent = line.trim();
+            // Nem használunk HTML5 draggable-t, mert rossz tableten.
+            // Saját eseményeket használunk alább.
+            li.textContent = cleanLines[i].trim();
             sentenceList.appendChild(li);
-        });
+        }
 
-        // 2. Számok oszlopának újraépítése
+        // Számok oszlopa
         numberColumn.innerHTML = '';
-        for(let i = 1; i <= lines.length; i++) {
-            const numDiv = document.createElement('div');
+        for(var j = 1; j <= cleanLines.length; j++) {
+            var numDiv = document.createElement('div');
             numDiv.className = 'number-item';
-            numDiv.textContent = i + ".";
+            numDiv.textContent = j + ".";
             numberColumn.appendChild(numDiv);
         }
 
-        reattachDragEvents();
-        initializeStats();
+        initializeStats(cleanLines.length);
+        addDragEvents(); // Egyedi drag logika aktiválása
 
         if (uploadContainer) {
             uploadContainer.style.display = 'none';
         }
     }
 
-    function initializeStats() {
+    function initializeStats(count) {
         preferenceStats = [];
-        const itemCount = sentenceList.children.length;
-        for (let i = 0; i < itemCount; i++) {
+        for (var i = 0; i < count; i++) {
             preferenceStats.push({});
         }
     }
 
-    // --- Drag and Drop ---
-    function reattachDragEvents() {
-        document.querySelectorAll('.sentence-item').forEach(item => {
-            item.removeEventListener('dragstart', handleDragStart);
-            item.removeEventListener('dragover', handleDragOver);
-            item.removeEventListener('dragleave', handleDragLeave);
-            item.removeEventListener('drop', handleDrop);
-            item.removeEventListener('dragend', handleDragEnd);
+    // --- 2. UNIVERZÁLIS DRAG & DROP (Egér + Érintés) ---
+    // Ez a rész helyettesíti a modern API-t, hogy működjön régi tableten is.
+    
+    function addDragEvents() {
+        var items = document.querySelectorAll('.sentence-item');
+        for (var i = 0; i < items.length; i++) {
+            var item = items[i];
+            
+            // Egér események
+            item.addEventListener('mousedown', handleStart, false);
+            
+            // Érintőképernyő események
+            item.addEventListener('touchstart', handleStart, false);
+            item.addEventListener('touchmove', handleMove, { passive: false });
+            item.addEventListener('touchend', handleEnd, false);
+        }
+    }
 
-            item.addEventListener('dragstart', handleDragStart);
-            item.addEventListener('dragover', handleDragOver);
-            item.addEventListener('dragleave', handleDragLeave);
-            item.addEventListener('drop', handleDrop);
-            item.addEventListener('dragend', handleDragEnd);
-        });
-    }
-    
-    function handleDragStart(e) { 
-        draggedItem = this; 
-        e.dataTransfer.effectAllowed = 'move'; 
-        e.dataTransfer.setData('text/html', this.innerHTML); 
-        setTimeout(() => this.classList.add('dragging'), 0); 
-    }
-    
-    function handleDragOver(e) { 
-        e.preventDefault(); 
-        const target = e.target.closest('.sentence-item'); 
-        if (target && target !== draggedItem) { 
-            const rect = target.getBoundingClientRect(); 
-            const midpoint = rect.y + rect.height / 2; 
-            if (e.clientY < midpoint) { 
-                target.style.borderTop = '2px solid #007bff'; 
-                target.style.borderBottom = 'none'; 
-            } else { 
-                target.style.borderBottom = '2px solid #007bff'; 
-                target.style.borderTop = 'none'; 
-            } 
+    // Globális változók a mozgatáshoz
+    var activeItem = null;
+    var startY = 0;
+    var startX = 0;
+
+    function handleStart(e) {
+        // Ha nem bal gomb (egérnél), kilépés
+        if (e.type === 'mousedown' && e.button !== 0) return;
+
+        activeItem = this; // Az elem, amire rákattintottunk
+        activeItem.classList.add('dragging');
+        
+        // Koordináták mentése
+        if (e.type === 'touchstart') {
+            var touch = e.touches[0];
+            startX = touch.clientX;
+            startY = touch.clientY;
         } 
+        
+        // Egér események feliratkozása globálisan, hogy követhessük a mozgást
+        if (e.type === 'mousedown') {
+            document.addEventListener('mousemove', handleMouseMove, false);
+            document.addEventListener('mouseup', handleEnd, false);
+        }
     }
-    
-    function handleDragLeave(e) { 
-        const target = e.target.closest('.sentence-item'); 
-        if (target) { 
-            target.style.borderTop = 'none'; 
-            target.style.borderBottom = 'none'; 
-        } 
+
+    // Csak egér mozgatása
+    function handleMouseMove(e) {
+        e.preventDefault();
+        checkSwap(e.clientX, e.clientY);
     }
-    
-    function handleDrop(e) { 
-        e.preventDefault(); 
-        const target = e.target.closest('.sentence-item'); 
-        if (target && target !== draggedItem) { 
-            target.style.borderTop = 'none'; 
-            target.style.borderBottom = 'none'; 
-            const rect = target.getBoundingClientRect(); 
-            const midpoint = rect.y + rect.height / 2; 
-            if (e.clientY < midpoint) { 
-                sentenceList.insertBefore(draggedItem, target); 
-            } else { 
-                sentenceList.insertBefore(draggedItem, target.nextSibling); 
-            } 
-        } 
+
+    // Csak érintés mozgatása
+    function handleMove(e) {
+        if (!activeItem) return;
+        
+        // Megakadályozzuk a görgetést, amíg húzzuk az elemet!
+        if (e.cancelable) e.preventDefault(); 
+
+        var touch = e.touches[0];
+        checkSwap(touch.clientX, touch.clientY);
     }
-    
-    function handleDragEnd(e) { 
-        document.querySelectorAll('.sentence-item').forEach(item => { 
-            item.classList.remove('dragging'); 
-            item.style.borderTop = 'none'; 
-            item.style.borderBottom = 'none'; 
-        }); 
-        draggedItem = null; 
+
+    // A logika, ami eldönti, kell-e cserélni két elemet
+    function checkSwap(x, y) {
+        if (!activeItem) return;
+
+        // Megnézzük, mi van az ujjunk alatt
+        // A régi tabletek miatt trükközni kell: elrejtjük a húzott elemet egy pillanatra,
+        // hogy "alálássunk", mi van alatta.
+        var originalDisplay = activeItem.style.display;
+        activeItem.style.display = 'none'; 
+        
+        var elementBelow = document.elementFromPoint(x, y);
+        
+        activeItem.style.display = originalDisplay; // Visszahozzuk
+
+        if (!elementBelow) return;
+
+        var targetItem = elementBelow.closest('.sentence-item');
+
+        // Ha találtunk másik elemet, és nem önmaga
+        if (targetItem && targetItem !== activeItem && targetItem.parentNode === sentenceList) {
+            
+            // Pozíciók összehasonlítása a DOM-ban
+            var allItems = Array.prototype.slice.call(sentenceList.children);
+            var activeIndex = allItems.indexOf(activeItem);
+            var targetIndex = allItems.indexOf(targetItem);
+
+            if (activeIndex < targetIndex) {
+                // Lefelé mozgatjuk: a target után szúrjuk be
+                sentenceList.insertBefore(activeItem, targetItem.nextSibling);
+            } else {
+                // Felfelé mozgatjuk: a target elé szúrjuk be
+                sentenceList.insertBefore(activeItem, targetItem);
+            }
+        }
     }
+
+    function handleEnd(e) {
+        if (activeItem) {
+            activeItem.classList.remove('dragging');
+            activeItem = null;
+        }
+        
+        // Takarítás
+        document.removeEventListener('mousemove', handleMouseMove, false);
+        document.removeEventListener('mouseup', handleEnd, false);
+    }
+
+
+    // --- 3. EGYÉB FUNKCIÓK (Keverés, Mentés) ---
 
     function shuffleSentences() {
-        const items = Array.from(sentenceList.children);
-        for (let i = items.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            if (i !== j) {
-                 const current = items[i];
-                 const target = items[j];
-                 sentenceList.insertBefore(current, target.nextSibling);
-                 sentenceList.insertBefore(target, current.nextSibling);
-                 [items[i], items[j]] = [items[j], items[i]];
-            }
+        var ul = document.getElementById("sentence-list");
+        for (var i = ul.children.length; i >= 0; i--) {
+            ul.appendChild(ul.children[Math.random() * i | 0]);
         }
     }
 
     function confirmOrder() {
-        if (sentenceList.children.length === 0 || sentenceList.children[0].textContent.includes("Options.txt")) {
+        if (sentenceList.children.length === 0 || sentenceList.children[0].textContent.indexOf("Options.txt") !== -1) {
             alert("Előbb töltsd be az opciókat a fájlból!");
             return;
         }
 
-        const currentItems = Array.from(sentenceList.children);
+        var currentItems = sentenceList.children;
         
-        currentItems.forEach((item, index) => {
-            const sentenceText = item.textContent.trim();
-            const position = index; 
-            
-            if (preferenceStats[position] && preferenceStats[position][sentenceText]) {
-                preferenceStats[position][sentenceText]++;
-            } else if (preferenceStats[position]) {
-                preferenceStats[position][sentenceText] = 1;
+        for(var i=0; i<currentItems.length; i++) {
+            var sentenceText = currentItems[i].textContent.trim();
+            // Statisztika mentése
+            if (preferenceStats[i]) {
+                if (preferenceStats[i][sentenceText]) {
+                    preferenceStats[i][sentenceText]++;
+                } else {
+                    preferenceStats[i][sentenceText] = 1;
+                }
             }
-        });
+        }
 
         confirmationCount++;
         counterValue.textContent = confirmationCount;
 
         resultMessage.style.display = 'block';
-        resultMessage.innerHTML = `✅ **Rögzítve!** A te 1. preferenciád: **${currentItems[0].textContent.trim()}**`;
+        resultMessage.innerHTML = '✅ **Rögzítve!** A te 1. preferenciád: <b>' + currentItems[0].textContent.trim() + '</b>';
         
-        setTimeout(() => {
+        setTimeout(function() {
             resultMessage.style.display = 'none';
         }, 3000);
         
@@ -518,128 +602,161 @@
     }
 
     function calculateTotalScores() {
-        let scores = {};
+        var scores = {};
         
-        preferenceStats.forEach((positionStats, index) => {
-            const pointsForPosition = 5 - index;
-            for (const [sentence, count] of Object.entries(positionStats)) {
-                if (!scores[sentence]) scores[sentence] = 0;
-                scores[sentence] += (count * pointsForPosition);
+        for(var i=0; i<preferenceStats.length; i++) {
+            var positionStats = preferenceStats[i];
+            var pointsForPosition = 5 - i;
+            
+            for (var sentence in positionStats) {
+                if (positionStats.hasOwnProperty(sentence)) {
+                    var count = positionStats[sentence];
+                    if (!scores[sentence]) scores[sentence] = 0;
+                    scores[sentence] += (count * pointsForPosition);
+                }
             }
-        });
+        }
 
-        let sortedScores = Object.entries(scores).map(([text, score]) => {
-            return { text: text, score: score };
+        var sortedScores = [];
+        for (var text in scores) {
+            if (scores.hasOwnProperty(text)) {
+                sortedScores.push({ text: text, score: scores[text] });
+            }
+        }
+        
+        sortedScores.sort(function(a, b) {
+            return b.score - a.score;
         });
         
-        sortedScores.sort((a, b) => b.score - a.score);
         return sortedScores;
     }
 
     function showStatistics() {
         modalCounterValue.textContent = confirmationCount;
         
-        const sortedScores = calculateTotalScores();
-        scoreRankingContainer.innerHTML = '<h3>🏆 Pontszám alapú rangsor (Súlyozott)</h3><p style="font-size:0.9em; color:#666;">(1. hely = 5p, 2. hely = 4p, ... 5. hely = 1p)</p>';
+        var sortedScores = calculateTotalScores();
+        scoreRankingContainer.innerHTML = '<h3>🏆 Pontszám alapú rangsor (Súlyozott)</h3><p style="font-size:0.9em; color:#666;">(1. hely = 5p, ... 5. hely = 1p)</p>';
         
         if (sortedScores.length === 0) {
             scoreRankingContainer.innerHTML += '<p>Még nincs adat.</p>';
         } else {
-            sortedScores.forEach(item => {
-                const div = document.createElement('div');
+            for(var k=0; k<sortedScores.length; k++) {
+                var item = sortedScores[k];
+                var div = document.createElement('div');
                 div.className = 'score-item';
-                div.innerHTML = `<span>${item.text}</span> <span class="score-badge">${item.score} pont</span>`;
+                div.innerHTML = '<span>' + item.text + '</span> <span class="score-badge">' + item.score + ' pont</span>';
                 scoreRankingContainer.appendChild(div);
-            });
+            }
         }
 
-        const statsList = statisticsResults.querySelector('.stats-list');
+        var statsList = statisticsResults.querySelector('.stats-list');
         statsList.innerHTML = ''; 
 
-        preferenceStats.forEach((positionStats, index) => {
-            const positionNumber = index + 1;
-            const positionHeader = document.createElement('h3');
-            positionHeader.textContent = `${positionNumber}. helyen szerepelt:`;
+        for(var i=0; i<preferenceStats.length; i++) {
+            var positionStats = preferenceStats[i];
+            var positionNumber = i + 1;
+            
+            var positionHeader = document.createElement('h3');
+            positionHeader.textContent = positionNumber + '. helyen szerepelt:';
             statsList.appendChild(positionHeader);
             
-            const sortedEntries = Object.entries(positionStats).sort((a, b) => b[1] - a[1]);
+            var sortedEntries = [];
+            for (var key in positionStats) {
+                if(positionStats.hasOwnProperty(key)) {
+                    sortedEntries.push([key, positionStats[key]]);
+                }
+            }
+            sortedEntries.sort(function(a, b) { return b[1] - a[1]; });
             
-            const itemUl = document.createElement('ul');
+            var itemUl = document.createElement('ul');
             itemUl.style.listStyle = 'none';
             itemUl.style.paddingLeft = '0';
 
             if (sortedEntries.length > 0) {
-                 sortedEntries.forEach(([sentence, count]) => {
-                    const listItem = document.createElement('li');
-                    listItem.className = 'stats-item';
-                    listItem.innerHTML = `${sentence} – <strong>${count}</strong> alkalommal`;
+                 for(var m=0; m<sortedEntries.length; m++) {
+                    var entry = sortedEntries[m];
+                    var listItem = document.createElement('li');
+                    listItem.style.background = "#f4f7fa";
+                    listItem.style.marginBottom = "4px";
+                    listItem.style.padding = "5px";
+                    listItem.innerHTML = entry[0] + ' – <strong>' + entry[1] + '</strong> alkalommal';
                     itemUl.appendChild(listItem);
-                });
+                }
             } else {
-                 const listItem = document.createElement('li');
-                 listItem.textContent = 'Még nem történt nyugtázás ezen a pozíción.';
-                 itemUl.appendChild(listItem);
+                 var emptyItem = document.createElement('li');
+                 emptyItem.textContent = 'Még nem történt nyugtázás ezen a pozíción.';
+                 itemUl.appendChild(emptyItem);
             }
             statsList.appendChild(itemUl);
-        });
+        }
 
         statisticsModal.style.display = 'block';
     }
 
     function saveStatisticsToFile() {
-        let content = "STATISZTIKA EXPORT\n";
-        content += "---------------------------------\n";
-        content += "Dátum: " + new Date().toLocaleString('hu-HU') + "\n";
-        content += "Összes kitöltés száma: " + confirmationCount + "\n";
-        content += "---------------------------------\n\n";
+        var content = "STATISZTIKA EXPORT\r\n";
+        content += "---------------------------------\r\n";
+        content += "Datum: " + new Date().toLocaleString() + "\r\n";
+        content += "Osszes kitoltes szama: " + confirmationCount + "\r\n";
+        content += "---------------------------------\r\n\r\n";
 
-        content += "🏆 PONTSZÁM ALAPÚ RANGSOR (Súlyozott)\n";
-        content += "(Számítás: 1. hely=5p, 2. hely=4p, 3. hely=3p, 4. hely=2p, 5. hely=1p)\n\n";
+        content += "🏆 PONTSZAM ALAPU RANGSOR (Sulyozott)\r\n";
+        content += "(Szamitas: 1. hely=5p, 2. hely=4p, 3. hely=3p, 4. hely=2p, 5. hely=1p)\r\n\r\n";
         
-        const sortedScores = calculateTotalScores();
+        var sortedScores = calculateTotalScores();
         if (sortedScores.length === 0) {
-            content += "    (Nincs adat)\n";
+            content += "    (Nincs adat)\r\n";
         } else {
-            sortedScores.forEach(item => {
-                content += `    [${item.score} pont] - ${item.text}\n`;
-            });
-        }
-        content += "\n---------------------------------\n\n";
-
-        preferenceStats.forEach((positionStats, index) => {
-            content += `>>> ${index + 1}. HELYEZÉSEK:\n`;
-            const sortedEntries = Object.entries(positionStats).sort((a, b) => b[1] - a[1]);
-            if (sortedEntries.length === 0) {
-                content += "    (Nincs adat)\n";
-            } else {
-                sortedEntries.forEach(([sentence, count]) => {
-                    content += `    [${count} db] - ${sentence}\n`;
-                });
+            for(var i=0; i<sortedScores.length; i++) {
+                content += "    [" + sortedScores[i].score + " pont] - " + sortedScores[i].text + "\r\n";
             }
-            content += "\n";
-        });
+        }
+        content += "\r\n---------------------------------\r\n\r\n";
 
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        const hour = String(now.getHours()).padStart(2, '0');
-        const minute = String(now.getMinutes()).padStart(2, '0');
-        const filename = `statisztika_${year}${month}${day}_${hour}${minute}.txt`;
+        for(var j=0; j<preferenceStats.length; j++) {
+            content += ">>> " + (j + 1) + ". HELYEZESEK:\r\n";
+            var stats = preferenceStats[j];
+            var entries = [];
+            for(var key in stats) {
+                if(stats.hasOwnProperty(key)) entries.push([key, stats[key]]);
+            }
+            entries.sort(function(a, b) { return b[1] - a[1]; });
 
-        const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(link.href);
+            if (entries.length === 0) {
+                content += "    (Nincs adat)\r\n";
+            } else {
+                for(var k=0; k<entries.length; k++) {
+                    content += "    [" + entries[k][1] + " db] - " + entries[k][0] + "\r\n";
+                }
+            }
+            content += "\r\n";
+        }
+
+        var now = new Date();
+        // Egyszerűsített fájlnév generálás régi böngészőkhöz
+        var filename = "statisztika.txt";
+
+        var blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+        
+        // IE10+ támogatás
+        if (window.navigator.msSaveOrOpenBlob) {
+            window.navigator.msSaveOrOpenBlob(blob, filename);
+        } else {
+            var link = document.createElement("a");
+            var url = URL.createObjectURL(blob);
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            setTimeout(function() {
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+            }, 0);
+        }
     }
 
     function closeModal() { statisticsModal.style.display = 'none'; }
     window.onclick = function(event) { if (event.target == statisticsModal) closeModal(); }
-    window.onkeydown = function(event) { if (event.key === 'Escape') closeModal(); }
 </script>
 
 </body>
