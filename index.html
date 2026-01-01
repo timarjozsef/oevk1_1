@@ -12,7 +12,6 @@
             padding: 0;
             background-color: #f0f4f7;
             color: #333333;
-            /* Mobilon megakadályozza a véletlen kijelölést */
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
@@ -29,8 +28,8 @@
         }
         
         .header-row {
-            display: -webkit-box;      /* Régi iOS */
-            display: -ms-flexbox;      /* Régi IE */
+            display: -webkit-box;
+            display: -ms-flexbox;
             display: flex;
             -webkit-box-pack: justify;
             -ms-flex-pack: justify;
@@ -41,7 +40,6 @@
             margin-bottom: 20px;
         }
 
-        /* Gap helyett margin hack a kompatibilitásért */
         .header-row > * { margin: 0 5px; }
 
         .logo-left { max-height: 80px; width: auto; }
@@ -87,7 +85,6 @@
             cursor: pointer;
             display: block;
             padding: 10px;
-            /* Nagyobb érintési felület */
             font-size: 1.1em;
         }
         #file-error-msg {
@@ -102,7 +99,6 @@
             display: -webkit-box;
             display: -ms-flexbox;
             display: flex;
-            /* Gap helyett margin a gyerekeken */
             align-items: flex-start;
             margin-bottom: 20px;
         }
@@ -118,13 +114,13 @@
             width: 40px; 
             padding-top: 0; 
             flex-shrink: 0;
-            margin-right: 10px; /* Gap pótlása */
+            margin-right: 10px;
         }
 
         .number-item {
             height: auto; 
-            min-height: 50px; /* Kicsit kisebb, hogy biztosan elférjen */
-            margin-bottom: 8px; /* Hozzátartozó sentence-item marginjához igazítva */
+            min-height: 50px;
+            margin-bottom: 8px;
             display: -webkit-box;
             display: -ms-flexbox;
             display: flex;
@@ -138,7 +134,6 @@
             font-weight: bold;
             font-size: 1.4em; 
             width: 100%;
-            /* Igazítás a dobozok közepéhez vizuálisan */
             padding-top: 10px; 
         }
 
@@ -150,15 +145,18 @@
             -ms-flex-positive: 1;
             flex-grow: 1;
             min-height: 50px;
-            position: relative; /* Fontos a pozicionáláshoz */
+            position: relative;
         }
 
         .sentence-item {
             background-color: #88E8FF; 
-            margin-bottom: 8px; /* Elemközök */
-            padding: 15px 15px 15px 40px; /* Bal padding a "fogantyú" helyének */
-            border-left: 5px solid #3282F6; 
-            cursor: move; /* Kurzor jelzi a mozgathatóságot */
+            margin-bottom: 8px;
+            padding: 15px 15px 15px 40px;
+            
+            /* --- MÓDOSÍTÁS: A fix szín helyett transparent, a JS tölti ki --- */
+            border-left: 5px solid transparent; 
+            
+            cursor: move;
             cursor: -webkit-grab;
             border-radius: 4px;
             font-size: 1.05em;
@@ -170,10 +168,9 @@
             -webkit-box-align: center;
             -ms-flex-align: center;
             align-items: center;
-            touch-action: none; /* Fontos: letiltja a görgetést az elemen */
+            touch-action: none;
         }
 
-        /* Ikon a mozgatáshoz (vizuális segítség) */
         .sentence-item::before {
             content: '☰';
             position: absolute;
@@ -202,13 +199,13 @@
             -webkit-box-flex: 1;
             -ms-flex-positive: 1;
             flex-grow: 1;
-            padding: 15px 10px; /* Nagyobb gombok érintéshez */
+            padding: 15px 10px;
             border: 2px solid #ffffff;
             border-radius: 4px;
             cursor: pointer;
             font-size: 1.1em;
             font-weight: bold;
-            margin: 0 5px; /* Gap pótlása */
+            margin: 0 5px;
         }
         
         .confirm-btn { background-color: #24B574; color: white; }
@@ -309,7 +306,7 @@
         </div>
 
         <ul id="sentence-list">
-            <li class="sentence-item">Kérlek töltsd be az Options.txt fájlt a fenti gombbal!</li>
+            <li class="sentence-item" style="border-left-color: #3282F6;">Kérlek töltsd be az Options.txt fájlt a fenti gombbal!</li>
         </ul>
     </div>
 
@@ -343,7 +340,7 @@
 </div>
 
 <script>
-    // --- Változók inicializálása (var használata a régi böngészők miatt) ---
+    // --- Változók inicializálása ---
     var sentenceList = document.getElementById('sentence-list');
     var numberColumn = document.getElementById('number-column');
     var resultMessage = document.getElementById('result-message');
@@ -369,7 +366,7 @@
         xhr.open('GET', 'Options.txt', true);
         xhr.onreadystatechange = function() {
             if (xhr.readyState === 4) {
-                if (xhr.status === 200 || xhr.status === 0) { // status 0 a helyi fájlokhoz
+                if (xhr.status === 200 || xhr.status === 0) {
                     var text = xhr.responseText;
                     if (text && text.length > 0) {
                         fileErrorMsg.style.display = 'none';
@@ -402,27 +399,42 @@
     });
 
     function processOptions(text) {
-        // Sortörések kezelése (IE kompatibilis split)
         var lines = text.replace(/\r\n/g, "\n").split("\n");
         var cleanLines = [];
         for(var k=0; k<lines.length; k++) {
             if(lines[k].trim() !== "") cleanLines.push(lines[k]);
         }
-        cleanLines = cleanLines.slice(0, 5); // Csak az első 5
+        cleanLines = cleanLines.slice(0, 5); 
 
         if (cleanLines.length === 0) {
             alert("A fájl üres vagy nem olvasható!");
             return;
         }
 
+        // --- SZÍNEK DEFINIÁLÁSA ITT ---
+        var borderColors = [
+            "#3282F6", // 1. Eredeti kék
+            "#E02424", // 2. Piros
+            "#16C60C", // 3. Zöld
+            "#F29F05", // 4. Narancs
+            "#9B59B6"  // 5. Lila
+        ];
+
         // Lista törlése
         sentenceList.innerHTML = '';
         for(var i=0; i<cleanLines.length; i++) {
             var li = document.createElement('li');
             li.className = 'sentence-item';
-            // Nem használunk HTML5 draggable-t, mert rossz tableten.
-            // Saját eseményeket használunk alább.
             li.textContent = cleanLines[i].trim();
+            
+            // Szín hozzárendelése az elemhez (Inline style)
+            // A ciklus változó (i) alapján választ a tömbből
+            if(borderColors[i]) {
+                li.style.borderLeftColor = borderColors[i];
+            } else {
+                li.style.borderLeftColor = "#333"; // Tartalék
+            }
+
             sentenceList.appendChild(li);
         }
 
@@ -436,7 +448,7 @@
         }
 
         initializeStats(cleanLines.length);
-        addDragEvents(); // Egyedi drag logika aktiválása
+        addDragEvents();
 
         if (uploadContainer) {
             uploadContainer.style.display = 'none';
@@ -451,97 +463,74 @@
     }
 
     // --- 2. UNIVERZÁLIS DRAG & DROP (Egér + Érintés) ---
-    // Ez a rész helyettesíti a modern API-t, hogy működjön régi tableten is.
     
     function addDragEvents() {
         var items = document.querySelectorAll('.sentence-item');
         for (var i = 0; i < items.length; i++) {
             var item = items[i];
-            
-            // Egér események
             item.addEventListener('mousedown', handleStart, false);
-            
-            // Érintőképernyő események
             item.addEventListener('touchstart', handleStart, false);
             item.addEventListener('touchmove', handleMove, { passive: false });
             item.addEventListener('touchend', handleEnd, false);
         }
     }
 
-    // Globális változók a mozgatáshoz
     var activeItem = null;
     var startY = 0;
     var startX = 0;
 
     function handleStart(e) {
-        // Ha nem bal gomb (egérnél), kilépés
         if (e.type === 'mousedown' && e.button !== 0) return;
 
-        activeItem = this; // Az elem, amire rákattintottunk
+        activeItem = this; 
         activeItem.classList.add('dragging');
         
-        // Koordináták mentése
         if (e.type === 'touchstart') {
             var touch = e.touches[0];
             startX = touch.clientX;
             startY = touch.clientY;
         } 
         
-        // Egér események feliratkozása globálisan, hogy követhessük a mozgást
         if (e.type === 'mousedown') {
             document.addEventListener('mousemove', handleMouseMove, false);
             document.addEventListener('mouseup', handleEnd, false);
         }
     }
 
-    // Csak egér mozgatása
     function handleMouseMove(e) {
         e.preventDefault();
         checkSwap(e.clientX, e.clientY);
     }
 
-    // Csak érintés mozgatása
     function handleMove(e) {
         if (!activeItem) return;
-        
-        // Megakadályozzuk a görgetést, amíg húzzuk az elemet!
         if (e.cancelable) e.preventDefault(); 
-
         var touch = e.touches[0];
         checkSwap(touch.clientX, touch.clientY);
     }
 
-    // A logika, ami eldönti, kell-e cserélni két elemet
     function checkSwap(x, y) {
         if (!activeItem) return;
 
-        // Megnézzük, mi van az ujjunk alatt
-        // A régi tabletek miatt trükközni kell: elrejtjük a húzott elemet egy pillanatra,
-        // hogy "alálássunk", mi van alatta.
         var originalDisplay = activeItem.style.display;
         activeItem.style.display = 'none'; 
         
         var elementBelow = document.elementFromPoint(x, y);
         
-        activeItem.style.display = originalDisplay; // Visszahozzuk
+        activeItem.style.display = originalDisplay; 
 
         if (!elementBelow) return;
 
         var targetItem = elementBelow.closest('.sentence-item');
 
-        // Ha találtunk másik elemet, és nem önmaga
         if (targetItem && targetItem !== activeItem && targetItem.parentNode === sentenceList) {
-            
-            // Pozíciók összehasonlítása a DOM-ban
             var allItems = Array.prototype.slice.call(sentenceList.children);
             var activeIndex = allItems.indexOf(activeItem);
             var targetIndex = allItems.indexOf(targetItem);
 
             if (activeIndex < targetIndex) {
-                // Lefelé mozgatjuk: a target után szúrjuk be
                 sentenceList.insertBefore(activeItem, targetItem.nextSibling);
             } else {
-                // Felfelé mozgatjuk: a target elé szúrjuk be
                 sentenceList.insertBefore(activeItem, targetItem);
             }
         }
@@ -552,14 +541,11 @@
             activeItem.classList.remove('dragging');
             activeItem = null;
         }
-        
-        // Takarítás
         document.removeEventListener('mousemove', handleMouseMove, false);
         document.removeEventListener('mouseup', handleEnd, false);
     }
 
-
-    // --- 3. EGYÉB FUNKCIÓK (Keverés, Mentés) ---
+    // --- 3. EGYÉB FUNKCIÓK ---
 
     function shuffleSentences() {
         var ul = document.getElementById("sentence-list");
@@ -578,7 +564,6 @@
         
         for(var i=0; i<currentItems.length; i++) {
             var sentenceText = currentItems[i].textContent.trim();
-            // Statisztika mentése
             if (preferenceStats[i]) {
                 if (preferenceStats[i][sentenceText]) {
                     preferenceStats[i][sentenceText]++;
@@ -624,10 +609,7 @@
             }
         }
         
-        sortedScores.sort(function(a, b) {
-            return b.score - a.score;
-        });
-        
+        sortedScores.sort(function(a, b) { return b.score - a.score; });
         return sortedScores;
     }
 
@@ -733,12 +715,9 @@
         }
 
         var now = new Date();
-        // Egyszerűsített fájlnév generálás régi böngészőkhöz
         var filename = "statisztika.txt";
-
         var blob = new Blob([content], { type: "text/plain;charset=utf-8" });
         
-        // IE10+ támogatás
         if (window.navigator.msSaveOrOpenBlob) {
             window.navigator.msSaveOrOpenBlob(blob, filename);
         } else {
