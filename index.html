@@ -94,69 +94,53 @@
             margin-top: 5px;
         }
         
-        /* --- ÚJ STRUKTÚRA: Egyetlen lista kezeli a számot és a dobozt is --- */
         .ranking-wrapper {
-            /* A flex layout innen törölve, mert nem kell két oszlop */
             display: block;
             margin-bottom: 20px;
         }
 
-        /* A különálló szám oszlopot töröltük CSS-ből és HTML-ből is */
+        
 
         #sentence-list {
             list-style: none;
             padding: 0;
             margin: 0;
-            counter-reset: rank-counter; /* CSS számláló indítása */
+            counter-reset: rank-counter; 
         }
 
         .sentence-item {
-            /* Ez most a sor konténere (szám + doboz) */
+            
             display: flex;
-            align-items: center; /* Ez középre igazítja a számot függőlegesen! */
+            align-items: center; 
             margin-bottom: 8px;
             cursor: move;
             cursor: -webkit-grab;
             touch-action: none;
         }
 
-        /* A sorszám generálása CSS-sel */
         .sentence-item::before {
             counter-increment: rank-counter;
             content: counter(rank-counter) ".";
             color: #ffffff;
             font-weight: bold;
             font-size: 1.4em;
-            width: 40px; /* Fix szélesség a számnak */
+            width: 40px; 
             flex-shrink: 0;
             text-align: center;
             margin-right: 5px;
         }
 
-        /* A tényleges színes doboz stílusa */
         .sentence-content {
             background-color: #88E8FF;
             padding: 15px 15px 15px 40px;
-            border-left: 5px solid transparent; /* JS színezi */
+            border-left: 5px solid transparent; 
             border-radius: 4px;
             font-size: 1.05em;
             position: relative;
             min-height: 24px;
-            flex-grow: 1; /* Kitölti a maradék helyet */
+            flex-grow: 1; 
             display: flex;
             align-items: center;
-        }
-
-        /* A hamburger ikon most a belső dobozhoz tartozik */
-        .sentence-content::before {
-            content: '☰';
-            position: absolute;
-            left: 10px;
-            color: #88E8FF;
-            /* Sötétítés a láthatóságért a világos háttéren, vagy az eredeti szín */
-            color: rgba(14, 22, 61, 0.5); 
-            font-size: 1.2em;
-            font-weight: bold;
         }
 
         .sentence-item.dragging {
@@ -164,7 +148,6 @@
             z-index: 100;
         }
         
-        /* Dragging közben a belső doboz stílusa változik */
         .sentence-item.dragging .sentence-content {
             background-color: #A3FFFD;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
@@ -299,7 +282,7 @@
     <div id="result-message"></div>
     
     <div id="counter-display">
-        Nyugtázások száma: <span id="counter-value">19</span>
+        Nyugtázások száma: <span id="counter-value">0</span>
     </div>
 </div>
 
@@ -310,7 +293,7 @@
         
         <button class="save-btn" onclick="saveStatisticsToFile()">💾 Statisztika mentése fájlba</button>
 
-        <p>Eddig elvégzett nyugtázások: <span id="modal-counter-value">19</span></p>
+        <p>Eddig elvégzett nyugtázások: <span id="modal-counter-value">0</span></p>
         
         <div id="score-ranking-container"></div>
         <hr>
@@ -333,7 +316,7 @@
     var fileErrorMsg = document.getElementById('file-error-msg');
     var uploadContainer = document.getElementById('upload-container'); 
     
-    var confirmationCount = 19;
+    var confirmationCount = 0;
     var lastConfirmationTime = 0;
     
     var preferenceStats = [];
