@@ -99,28 +99,25 @@
             margin-bottom: 20px;
         }
 
-        
-
         #sentence-list {
             list-style: none;
             padding: 0;
             margin: 0;
-            counter-reset: rank-counter; 
+            /* counter-reset eltávolítva, mert manuálisan kezeljük a számokat */
         }
 
         .sentence-item {
-            
             display: flex;
             align-items: center; 
             margin-bottom: 8px;
-            cursor: move;
+            cursor: move; /* Fallback */
             cursor: -webkit-grab;
             touch-action: none;
+            transition: all 0.2s ease;
         }
 
-        .sentence-item::before {
-            counter-increment: rank-counter;
-            content: counter(rank-counter) ".";
+        /* ÚJ: Valódi DOM elem a számnak, hogy kattintható legyen */
+        .rank-number {
             color: #ffffff;
             font-weight: bold;
             font-size: 1.4em;
@@ -128,6 +125,15 @@
             flex-shrink: 0;
             text-align: center;
             margin-right: 5px;
+            cursor: pointer; /* Jelzi, hogy kattintható */
+            padding: 10px 0;
+            user-select: none;
+        }
+        
+        /* Hover effekt a számnak */
+        .rank-number:hover {
+            text-shadow: 0 0 5px #fff;
+            transform: scale(1.1);
         }
 
         .sentence-content {
@@ -141,6 +147,7 @@
             flex-grow: 1; 
             display: flex;
             align-items: center;
+            cursor: pointer; /* Jelzi, hogy kattintható a kiválasztáshoz */
         }
 
         .sentence-item.dragging {
@@ -151,6 +158,14 @@
         .sentence-item.dragging .sentence-content {
             background-color: #A3FFFD;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transform: scale(1.02);
+        }
+
+        /* ÚJ: Kiválasztott elem stílusa */
+        .sentence-item.item-selected .sentence-content {
+            background-color: #FFEB3B; /* Sárga háttér jelzi a kiválasztást */
+            box-shadow: 0 0 8px #FFEB3B;
+            border: 2px dashed #333;
             transform: scale(1.02);
         }
 
@@ -239,7 +254,6 @@
             .header-row > * { margin: 10px 0; }
             .logo-left { max-height: 60px; }
             .logo-right { max-height: 100px; }
-            /* number-column stílusok törölve, már nem szükséges */
         }
     </style>
 </head>
@@ -261,12 +275,13 @@
         <div id="file-error-msg"></div>
     </div>
 	<div>
-		<p>Állítsa az alábbi problémákat fontossági sorrendbe (legfelül a legfontosabb). Fogja meg és húzza át az elemeket!</p>
+		<p><b>Állítsa az alábbi problémákat fontossági sorrendbe.</b></p>
 	</div>
     
     <div class="ranking-wrapper">
         <ul id="sentence-list">
             <li class="sentence-item">
+                 <div class="rank-number">1.</div>
                  <div class="sentence-content" style="border-left-color: #3282F6;">
                     Kérlek töltsd be az Options.txt fájlt a fenti gombbal!
                  </div>
@@ -321,6 +336,9 @@
     
     var preferenceStats = [];
     var dragSrcEl = null;
+
+    // --- ÚJ VÁLTOZÓ: A kattintással kiválasztott elem tárolása ---
+    var selectedForMove = null;
     
     // --- 1. OPCIÓK BETÖLTÉSE ---
 
@@ -385,16 +403,24 @@
         // Lista törlése és újraépítése
         sentenceList.innerHTML = '';
         
-        // MÓDOSÍTÁS: Új struktúra generálása (Flexboxos elrendezéshez)
         for(var i=0; i<cleanLines.length; i++) {
-            // A külső konténer (ez lesz a "sor", amiben a szám is van)
             var li = document.createElement('li');
             li.className = 'sentence-item';
             
-            // A belső doboz (ez a színes, szöveges rész)
+            // ÚJ: Valódi DOM elem a számnak (::before helyett)
+            var rankDiv = document.createElement('div');
+            rankDiv.className = 'rank-number';
+            rankDiv.textContent = (i + 1) + ".";
+            // Eseménykezelő a számra kattintáshoz
+            rankDiv.onclick = function(e) { handleRankNumberClick(e); };
+
+            // A belső doboz (szöveges rész)
             var contentDiv = document.createElement('div');
             contentDiv.className = 'sentence-content';
             contentDiv.textContent = cleanLines[i].trim();
+
+            // Eseménykezelő a szövegre kattintáshoz (kiválasztás)
+            contentDiv.onclick = function(e) { handleContentClick(e); };
 
             // Szín hozzárendelése a belső dobozhoz
             if(borderColors[i]) {
@@ -403,11 +429,10 @@
                 contentDiv.style.borderLeftColor = "#333";
             }
 
+            li.appendChild(rankDiv);
             li.appendChild(contentDiv);
             sentenceList.appendChild(li);
         }
-
-        // A numberColumn generálás TÖRÖLVE, mert CSS Counter oldja meg.
 
         initializeStats(cleanLines.length);
         addDragEvents();
@@ -424,9 +449,81 @@
         }
     }
 
+    // --- ÚJ: Sorszámok frissítése ---
+    function updateRankNumbers() {
+        var items = document.querySelectorAll('.sentence-item .rank-number');
+        for (var i = 0; i < items.length; i++) {
+            items[i].textContent = (i + 1) + ".";
+        }
+    }
+
+    // --- ÚJ: Kattintás alapú mozgatás logika ---
+
+    function handleContentClick(e) {
+        // Megkeressük a szülő .sentence-item elemet
+        var clickedItem = e.target.closest('.sentence-item');
+        
+        if (selectedForMove === clickedItem) {
+            // Ha már ki volt jelölve, akkor visszavonjuk a kijelölést
+            deselectItem();
+        } else {
+            // Ha más volt kijelölve, azt először levesszük
+            if (selectedForMove) deselectItem();
+            
+            // Kijelöljük az újat
+            selectedForMove = clickedItem;
+            selectedForMove.classList.add('item-selected');
+        }
+    }
+
+    function handleRankNumberClick(e) {
+        // Ha nincs semmi kiválasztva, nem csinálunk semmit
+        if (!selectedForMove) return;
+
+        var targetNumberDiv = e.target;
+        var targetItem = targetNumberDiv.closest('.sentence-item');
+
+        // Ha saját magára kattintottunk, nincs mozgatás
+        if (targetItem === selectedForMove) {
+            deselectItem();
+            return;
+        }
+
+        // --- MÓDOSÍTOTT ÁTHELYEZÉS LOGIKA ---
+        var allItems = Array.prototype.slice.call(sentenceList.children);
+        var currentIndex = allItems.indexOf(selectedForMove);
+        var targetIndex = allItems.indexOf(targetItem);
+
+        if (currentIndex < targetIndex) {
+            // Ha fentről lefelé mozgatjuk (pl. 1-esről a 3-asra)
+            // A target elem mögé (nextSibling elé) szúrjuk be.
+            // Így a kiválasztott elem lesz a 3., a régi 3. pedig felcsúszik 2-esnek.
+            sentenceList.insertBefore(selectedForMove, targetItem.nextSibling);
+        } else {
+            // Ha lentről felfelé mozgatjuk (pl. 3-asról az 1-esre)
+            // A target elem elé szúrjuk be (ahogy eddig).
+            sentenceList.insertBefore(selectedForMove, targetItem);
+        }
+        
+        // Sorszámok frissítése
+        updateRankNumbers();
+        
+        // Kijelölés megszüntetése
+        deselectItem();
+    }
+
+    function deselectItem() {
+        if (selectedForMove) {
+            selectedForMove.classList.remove('item-selected');
+            selectedForMove = null;
+        }
+    }
+
+
     // --- 2. DRAG & DROP ---
     
     function addDragEvents() {
+        // Mivel dinamikus a tartalom, de a handleStart-ot a sentence-item-re tesszük
         var items = document.querySelectorAll('.sentence-item');
         for (var i = 0; i < items.length; i++) {
             var item = items[i];
@@ -442,11 +539,16 @@
     var startX = 0;
 
     function handleStart(e) {
+        // Csak akkor indítjuk a húzást, ha NEM a rank-number-re kattintottak (az a click move-hoz kell)
+        if (e.target.classList.contains('rank-number')) return;
+
         if (e.type === 'mousedown' && e.button !== 0) return;
 
-        // A teljes sort mozgatjuk (.sentence-item)
         activeItem = this.closest('.sentence-item');
         if (!activeItem) return;
+
+        // Ha van kattintással kijelölt elem, azt töröljük húzáskor
+        deselectItem();
 
         activeItem.classList.add('dragging');
         
@@ -477,7 +579,6 @@
     function checkSwap(x, y) {
         if (!activeItem) return;
 
-        // Elrejtjük, hogy lássuk mi van alatta
         var originalDisplay = activeItem.style.display;
         activeItem.style.display = 'none'; 
         
@@ -509,6 +610,8 @@
         }
         document.removeEventListener('mousemove', handleMouseMove, false);
         document.removeEventListener('mouseup', handleEnd, false);
+        
+        updateRankNumbers();
     }
 
     // --- 3. EGYÉB FUNKCIÓK ---
@@ -518,6 +621,7 @@
         for (var i = ul.children.length; i >= 0; i--) {
             ul.appendChild(ul.children[Math.random() * i | 0]);
         }
+        updateRankNumbers();
     }
 
     function confirmOrder() {
@@ -574,6 +678,7 @@
         }, 3000);
         
         shuffleSentences();
+        deselectItem();
     }
 
     function calculateTotalScores() {
